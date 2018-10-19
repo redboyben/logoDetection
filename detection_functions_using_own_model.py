@@ -92,11 +92,13 @@ def keepRelevantBoxes(boxes, scores, threshold = .5):
 
 def convertToCoordinates(box, im_dim):
     im_height, im_width = im_dim
-    xmin = int(box[0] * im_height)
-    xmax = int(box[1] * im_width)
-    ymin = int(box[2] * im_height)
-    ymax = int(box[3] * im_width)
-    return(np.array([xmin, xmax, ymin, ymax]))
+    ymin = min(int(box[0] * im_height), im_height)
+    xmin = min(int(box[1] * im_width), im_width)
+    ymax = min(int(box[2] * im_height), im_height)
+    ymin = min(int(box[3] * im_width), im_width)
+    return(np.array([ymin, xmin, ymax, ymin]))
+
+
 
 
 
