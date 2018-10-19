@@ -71,7 +71,6 @@ def videoReader(vidCap):
             np.squeeze(classes).astype(np.int32),
             np.squeeze(scores),
             category_index,
-#            use_normalized_coordinates=True,
             use_normalized_coordinates=False,
             line_thickness=4)
 
