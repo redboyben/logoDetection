@@ -99,16 +99,6 @@ def convertToCoordinates(box, im_dim):
     return(np.array([xmin, xmax, ymin, ymax]))
 
 
-def convertToCoordinatesTmp(box, im_dim):
-    im_height, im_width = im_dim
-    xmax = int(box[0] * im_width)
-    xmin = int(box[1] * im_width)
-    ymax = int(box[2] * im_height)
-    ymin = int(box[3] * im_height)
-    return(np.array([[xmin, ymin], [xmax, ymax], [xmax, ymin], [xmin, ymax]]))
-
-
-
 
 
 v = cv2.VideoCapture('sysnav/positive.avi')
