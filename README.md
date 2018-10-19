@@ -2,10 +2,11 @@
 
 Goal: detect a logo in a video
 
-## First step: Deep learning
+## First step: Deep learning approach
 
 Train a network using generated images of the said logo with transfer learning with Google's object detection API, run it on the videos
 
-## Second approach: Edge detection
+## Second step: Vision approach
 
-Detect the edge and search the pattern
+Filter false positive with colors/form
+Use time as factor
