@@ -10,7 +10,6 @@ import os
 import sys
 import tensorflow as tf
 import cv2
-import time
 import matplotlib.pyplot as plt
 
 
