@@ -1,12 +1,19 @@
-# logoDetection
+# Logo Detection
 
 Goal: detect a logo in a video
 
-## First step: Deep learning approach
+The steps and methods used are described in the pdf documentation
 
-Train a network using generated images of the said logo with transfer learning with Google's object detection API, run it on the videos
+## Get Started
 
-## Second step: Vision approach
+Clone, run main
 
-Filter false positive with colors/form
-Use time as factor
+### Compute a prediction
+
+`python main.py -i "video.mp4" -o "path/to/output/res.csv`
+
+Parameters available:
+`
+'-i', '--input'     input video
+'-o', '--output'    output video
+`
