@@ -6,10 +6,13 @@
 {geometry}
 \usepackage{times}
 \usepackage{amsmath}
+\usepackage{subcaption}
 \usepackage{changepage}
 \usepackage{stmaryrd}
 \usepackage{amssymb}
-\usepackage{graphicx}%
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
 \usepackage{hyperref}
 
 
@@ -24,9 +27,17 @@
 \maketitle
 \section{Introduction}
 
-The aim of the project is to find logos of a Sysnav company in a video. Deep learning and computer vision are used for this matter.
+\paragraph{}
+The aim of the project is to find logos of a Sysnav company (see \ref{fig:logo}) in a video. Deep learning and computer vision are used for this matter.
 
-todo insert logo here   
+\begin{figure}[H]
+\centering
+\includegraphics[width=.2\textwidth]{images/logo.png}
+\caption{\label{fig:logo}Sysnav logo}
+\end{figure}
+
+
+
 
 \section{First Approach}
 
@@ -34,9 +45,28 @@ todo insert logo here
 The first approach consists in using computer vision with the very specific shape of the logo. To that extent, an edge detection using the OpenCV library is used. Every frame is converted in black and white, blurred and the gradient of the intensity of the pixel is analyzed to detect the edges. The Canny Edge Detection \cite{canny} implemented by OpenCV is used. 
 
 \paragraph{}
-However, the level of maxVal and minVal are not that easy to determine.  Those two values represent the thresholds that determine if the gradient is high enough or not high enough to be an edge. If the value is in between, the connectivity is taken into account. Indeed, the distribution of the gradient really depends on the images of the video, very different following the movement of the camera. That's why no efficient way of calibrating these values was determined; the images are often way too blurry because of the movement of the camera or the bad luminosity. Calibrating the values on the level of luminosity of the image was not efficient: the distribution was too different from one frame to another to correctly detect the edges - especially on the blurry images.
+However, the level of maxVal and minVal are not that easy to determine.  Those two values represent the thresholds that determine if the gradient is high enough or not high enough to be an edge. If the value is in between, the connectivity is taken into account. Indeed, the distribution of the gradient really depends on the images of the video, very different following the movement of the camera. That's why no efficient way of calibrating these values was determined; the images are often way too blurry because of the movement of the camera or the bad luminosity (see \ref{fig:edgeDetection}). Calibrating the values on the level of luminosity of the image was not efficient: the distribution was too different from one frame to another to correctly detect the edges - especially on the blurry images.
 
-todo insert edge failed
+\captionsetup[subfigure]{labelformat=simple, labelsep=period}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{5cm}
+		\centering
+		\includegraphics[width=4.5cm]{images/edgeDetect1.png}
+		\caption{The edges are clear, shapes are easy to detect.}
+	\end{subfigure}
+	\begin{subfigure}[t]{5cm}
+		\centering
+		\includegraphics[width=4.5cm]{images/edgeDetect2.png}
+		\caption{The edges less clear, the background interferes}
+	\end{subfigure}
+	\begin{subfigure}[t]{5cm}
+		\centering
+		\includegraphics[width=4.5cm]{images/edgeDetect3.png}
+		\caption{The edges are too blurry, the quality is not good enough, shapes are not perceptible.}
+	\end{subfigure}
+	\caption{Edge detection on several crops of images more or less blurred and small with the same thresholds.}\label{fig:edgeDetection}
+\end{figure}
 
 \paragraph{}
 Detecting the circles inside the picture reveals to be too difficult to calibrate; a first focus on where to look before using computer vision is required for proper results. To that extent, deep learning is used.
@@ -71,16 +101,48 @@ By using enough batches, we can make sure that the probability of using all the 
 \end{align*}
 which is around $98\%$ for $m=20$ in this example. This is of course a simplistic situation. In the real use, the number of batch is very high compared to the value of each $p_i$, enough for this probability to remain in the same area - and be sure that the data augmentation was entirely exploited.
 
-The transformations are used to make sure that the neural network has seen as many real life cases as possible. Here are what is used:
+The transformations (see \ref{fig:dataAugmentationSample}) are used to make sure that the neural network has seen as many real life cases as possible. Here are what is used:
 \begin{itemize}
     \item Random crops. The new image must remain big enough to have most of the logo on the frame. This simulates the logos that are partially cropped in the video.
     \item Random blurs. This simulates the movements of the camera.
-    \item Random luminosity adjustments.
+    \item Random luminosity adjustments (brighter and darker).
     \item Random rotations, random horizontal and vertical flips.
     \item Random resizing.
 \end{itemize}
 
-todo add image of each yeay
+
+
+
+\captionsetup[subfigure]{labelformat=simple, labelsep=period}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{2.5cm}
+		\centering
+		\includegraphics[width=2.5cm]{images/logo.png}
+		\caption{Original}
+	\end{subfigure}
+	\begin{subfigure}[t]{2.5cm}
+		\centering
+		\includegraphics[width=2.5cm]{images/logoRandomRotation.png}
+		\caption{Rotation}
+	\end{subfigure}
+	\begin{subfigure}[t]{2.5cm}
+		\centering
+		\includegraphics[width=2.5cm]{images/logoLuminosity.png}
+		\caption{Luminosity}
+	\end{subfigure}
+	\begin{subfigure}[t]{2.5cm}
+		\centering
+		\includegraphics[width=2.5cm]{images/logoBlurred.png}
+		\caption{Blurred}
+	\end{subfigure}
+	\begin{subfigure}[t]{2.5cm}
+		\centering
+		\includegraphics[width=2.5cm]{images/logoRandomCrop.png}
+		\caption{Cropped}
+	\end{subfigure}
+	\caption{Different transformations. They are not combined in this sample, which is the case in reality during the training.}\label{fig:dataAugmentationSample}
+\end{figure}
 
 \subsubsection{Train, validation and test set}
 
@@ -95,12 +157,38 @@ The neural network used is a NaSNet architecture \cite{nasnet}. All the layers b
 \paragraph{}
 The training phase is performed on a CPU for 12 hours. This is definitely not optimal. A smaller or decreasing learning rate could give better results but requires too much computer power. The parameters could have been optimized in a better way but due to time and computation power constraint, the values of the literature have been used.
 
-todo add the learning curve
+\begin{figure}
+\centering
+\includegraphics[width=15cm]{images/lossCurve.PNG}
+\caption{\label{fig:loss}Loss evolution during the training. We can see that the training is not complete yet after less than 2,000 epochs.}
+\end{figure}
 
 \subsubsection{Results}
 
 \paragraph{}
-The results from this methods are mixed. We cannot with this learning rate reach a loss below 1. That said, it performs better than the simple edge/circle detection previously used. It seems not to be that much bothered by the blurriness/bad luminosity of a few frames. There are however too many false positive that need to be reduced using another independent method. This is why another filter is added to the process.
+The results from this methods are mixed. With this learning rate, we barely reach a loss below 1 (see \ref{fig:loss}), and the training could be ran for more epochs (around 10,000 would be better). That said, it performs better than the simple edge/circle detection previously used (see \ref{fig:predictionResult}). It seems not to be that much bothered by the blurriness/bad luminosity of a few frames. There are however too many false positive that need to be reduced using another independent method. This is why another filter is added to the process.
+
+\captionsetup[subfigure]{labelformat=simple, labelsep=period}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{4cm}
+		\centering
+		\includegraphics[width=4cm]{images/detection1.PNG}
+	\end{subfigure}
+	\begin{subfigure}[t]{4cm}
+		\centering
+		\includegraphics[width=4cm]{images/detection2.PNG}
+	\end{subfigure}
+	\begin{subfigure}[t]{4cm}
+		\centering
+		\includegraphics[width=4cm]{images/detection3.PNG}
+	\end{subfigure}
+	\begin{subfigure}[t]{4cm}
+		\centering
+		\includegraphics[width=4cm]{images/detection4.PNG}
+	\end{subfigure}
+	\caption{Sucessful predictions on test images.}\label{fig:predictionResult}
+\end{figure}
 
 \subsection{Back to computer vision}
 
@@ -115,9 +203,24 @@ This one is pretty straightforward; the logos should be a square or not too far 
 \paragraph{}
 One thing that hasn't been used so far is the color distribution. Indeed, all the logo images should have - if the image is not too blurry - a pic in the color distribution in blue, white and red. However, this is not always the case, especially when the camera is moving too fast and the luminosity is not good enough.
 
-todo add distrib images
 
-However, it is possible to try to detect the amount of red in the picture, even though what we call red is actually pretty permissive. Indeed, a positive image should have at least a little bit of red, but must not be more than a quarter of the picture (number determined by using positive and negative samples).
+\captionsetup[subfigure]{labelformat=simple, labelsep=period}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{10cm}
+		\centering
+		\includegraphics[width=9cm]{images/colorDistrib1.png}
+		\caption{The distribution is neat, can be distinguished easily}
+	\end{subfigure}
+	\begin{subfigure}[t]{10cm}
+		\centering
+		\includegraphics[width=9cm]{images/colorDistrib2.png}
+		\caption{The distribution is more mixed; the amount of red remains effective.}
+	\end{subfigure}
+	\caption{Images with detection of red and the distribution of the colors.}\label{fig:colorDistrib}
+\end{figure}
+
+However, it is possible to try to detect the amount of red in the picture, with what is considered red quite permissive ($red > 40$ and $red > \max(2*green, 2*blue)$). Indeed, a positive image should have at least a little bit of red, but must not be more than a $25\%$ of the picture (number determined by using positive and negative samples, see \ref{fig:colorDistrib}).
 
 
 \section{Next steps}
@@ -146,7 +249,7 @@ John Canny.
 
 \bibitem{nadam}
 Timothy Dozat.
-\textit{Incorporating Nesterov Momentum into Adam}
+\textit{Incorporating Nesterov Momentum into Adam}.
 2015.
  
 \bibitem{kalman} 
