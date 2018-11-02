@@ -28,7 +28,7 @@
 \section{Introduction}
 
 \paragraph{}
-The aim of the project is to find logos of a Sysnav company (see \ref{fig:logo}) in a video. Deep learning and computer vision are used for this matter.
+The aim of the project is to find logos of a Sysnav company in a video. Deep learning and computer vision are used for this matter.
 
 \begin{figure}[H]
 \centering
@@ -74,8 +74,8 @@ Detecting the circles inside the picture reveals to be too difficult to calibrat
 \section{Deep learning}
 
 \paragraph{}
-The deep learning approach relies on the use of a neural network already trained and adapted from the ImageNet and COCO classification problem, as described in the documentation of \href{https://github.com/tensorflow/models/tree/master/research/object_detection}{Google's Object Detection API}.
-The idea is to use that API, retrain it with the local problem of our logo detection, then apply it frame by frame to detect boxes where the logo is likely to be.
+The deep learning approach relies on the use of a neural network already trained and adapted from the ImageNet and COCO classification problem, as described in the documentation of \href{https://github.com/tensorflow/models/tree/master/research/object_detection}{Google's Object Detection API} \cite{googleAPI}.
+The idea is to retrain it with the local problem of our logo detection, and apply it frame by frame to detect boxes where the logo is likely to be.
 
 \paragraph{}
 The pros of that method is that it doesn't rely exactly on edge detection; it's more subtle, the features extracted from the frames are more diverse and more elaborate. It would also be adaptable to any object recognition, not only the logo problem, and this quite easily.
@@ -246,6 +246,12 @@ The model used here does not allow the real time processing, at least on CPU. A 
 John Canny. 
 \textit{A Computational Approach to Edge Detection}. 
 1986.
+
+\bibitem{googleAPI}
+Huang J, Rathod V, Sun C, Zhu M, Korattikara A, Fathi A, Fischer I, Wojna Z,
+Song Y, Guadarrama S, Murphy K.
+\textit{Speed/accuracy trade-offs for modern convolutional object detectors}.
+2017.
 
 \bibitem{nadam}
 Timothy Dozat.
