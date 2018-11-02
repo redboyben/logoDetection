@@ -10,7 +10,7 @@ Clone, run main
 
 ### Compute a prediction
 
-`python main.py -i "video.mp4" -o "path/to/output/res.csv`
+`python main.py -i path/to/input/video.mp4 -o path/to/output/res.csv`
 
 Parameters available:
 `
