@@ -28,7 +28,8 @@ def treatVideo(input_file, verbose, display_frequence):
     array, shape: [N, 5]
         An array containing the detected logos and their frame ids
     """
-
+    if(display_frequence < 1): # bad value entered, going back to default
+        display_frequence = 10
     # Loading model
     detection_graph = loadDetectionModel()
 
