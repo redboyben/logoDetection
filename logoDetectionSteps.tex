@@ -78,7 +78,7 @@ Quantifying the results is necessary in order to be able to compare the differen
     \item The number of detected logos. A logo is considered detected if $75\%$ of its screen time appearance is detected.
     \item The number of missed logos.
     \item The number of false positives, which is the number of objects detected that do not contain any logo.
-    \item The time of execution to provide the \path{output.csv} file, in frame per second (fps). It is here measured on a local CPU, and provided with a standard deviation from an averaged measure every 30 images. This means that every 30 images, the time required to treat them is stored. This process is done multiple times on the same video with different starting frames, to reach a number of 1,000 samples of 30 images computation time. These values are then converted to fps. The mean and standard deviation of this distribution is provided in the result tables.
+    \item The time of execution to provide the \path{output.csv} file, in frame per second (fps). It is here measured on a local CPU, and provided with a standard deviation from an averaged measure every 30 images. This means that every 30 images, the time required to treat them is stored. This process is done multiple times on the same video with different starting frames, to reach a number of 1,000 samples of batch of 30 images computation time. These values are then converted to fps. The mean and standard deviation of this distribution is provided in the result tables.
 \end{itemize}
 
 
@@ -212,7 +212,7 @@ The time of execution is - as expected - worst than a simple edge analysis. It i
         Detected logos          & 14 \\
         Missed logos            & 1 \\
         False positives         & 43 \\
-        Time of execution(fps)  & 12.7 (std = 0.7) \\
+        Time of execution(fps)  & 12.4 (std = 0.7) \\
         \end{tabular}
     \caption{Metrics on algorithm using deep learning only.}
     \label{fig:deepLearningResults}
@@ -247,8 +247,8 @@ One thing that hasn't been used so far is the color distribution. Indeed, all th
 	\end{subfigure}
 	\caption{Images with detection of red and the RGB distribution of the colors.}\label{fig:colorDistrib}
 \end{figure}
-
-It is however possible to try to detect the amount of red in the picture, with what is considered red quite permissive ($red > 40$ and $red > \max(2*green, 2*blue)$). Indeed, a positive image should have at least a little bit of red, but the ratio $red\ pixels/number\ of\ pixels$ should not be more than a $25\%$ of the picture (number determined empirically by using positive and negative samples, see \ref{fig:colorDistrib}). This treatment is time consuming, the complexity being $\mathcal{O}(width*height)$.
+\paragraph{}
+It is however possible to try to detect the amount of red in the picture, with what is considered red quite permissive ($red > 40$ and $red > \max(2*green, 2*blue)$). Indeed, a positive image should have at least a little bit of red, but the ratio $red\ pixels/number\ of\ pixels$ should not be more than a $25\%$ of the picture (number determined empirically by using positive and negative samples, see \ref{fig:colorDistrib}). This treatment is time consuming, the complexity being $\mathcal{O}(width*height)$. This could have been a feature detected by the neural network, but since we could not retrain the convolutions layers (size of training dataset + computation power), the feature are direcly used from the pretrained model - and not specific to our logo.
 
 \subsection{Results}
 
@@ -266,7 +266,7 @@ This treatment - especially the color check - makes the running time longer, sin
         Detected logos          & 17 \\
         Missed logos            & 1 \\
         False positives         & 18 \\
-        Time of execution (fps) & 7.9 (std = 4.9) \\
+        Time of execution (fps) & 5.4 (std = 3.8) \\
         \end{tabular}
     \caption{Metrics on algorithm using deep learning and additional filters.}
     \label{fig:correctedDeepLearningResults}
