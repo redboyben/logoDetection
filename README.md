@@ -17,7 +17,7 @@ Compute a prediction:
 Parameters available:
 
 `
-  -i INPUT_FILE, --input_file INPUT_FILE\
+  -i INPUT_FILE, --input_file INPUT_FILE <br/>
                         path/to/input_file.avi
   -o OUTPUT_FILE, --output_file OUTPUT_FILE
                         path/to/output_file.csv
