@@ -17,14 +17,10 @@ Compute a prediction:
 Parameters available:
 
 ```
-  -i INPUT_FILE, --input_file INPUT_FILE
-                        path/to/input_file.avi
-  -o OUTPUT_FILE, --output_file OUTPUT_FILE
-                        path/to/output_file.csv
-  -v VERBOSE, --verbose VERBOSE
-                        Displaying progress or not
-  -f DISPLAY_FREQUENCE, --display_frequence DISPLAY_FREQUENCE
-                        if verbose, how often progress is displayed
+  '-i', '--input_file'          path/to/input_file.avi
+  '-o', '--output_file'         path/to/output_file.csv
+  '-v', '--verbose'             Displaying progress or not (boolean)
+  '-f', '--display_frequence'   if verbose, how often progress is displayed (in seconds)
 ```
 
 ## Documentation
