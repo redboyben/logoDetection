@@ -54,9 +54,6 @@ def treatVideo(input_file, verbose, display_frequence):
                 
                 # Treating the frame; result_list is modified inplace
                 treatImage(image, detection_graph, result_list, sess, frame_id)
-                
-                if(frame_id == 5):
-                    return(result_list)
 
                 # Displaying evolution if required by user
                 if(verbose):
