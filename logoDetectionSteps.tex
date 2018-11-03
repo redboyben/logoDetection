@@ -39,13 +39,15 @@ The aim of the project is to find logos of a Sysnav company in a video. Deep lea
 
 
 
-\section{First Approach}
+\section{Computer vision}
+
+\subsection{Edges and shapes detection}
 
 \paragraph{}
 The first approach consists in using computer vision with the very specific shape of the logo. To that extent, an edge detection using the OpenCV library is used. Every frame is converted in black and white, blurred and the gradient of the intensity of the pixel is analyzed to detect the edges. The Canny Edge Detection \cite{canny} implemented by OpenCV is used. 
 
 \paragraph{}
-However, the level of maxVal and minVal are not that easy to determine.  Those two values represent the thresholds that determine if the gradient is high enough or not high enough to be an edge. If the value is in between, the connectivity is taken into account. Indeed, the distribution of the gradient really depends on the images of the video, very different following the movement of the camera. That's why no efficient way of calibrating these values was determined; the images are often way too blurry because of the movement of the camera or the bad luminosity (see \ref{fig:edgeDetection}). Calibrating the values on the level of luminosity of the image was not efficient: the distribution was too different from one frame to another to correctly detect the edges - especially on the blurry images.
+However, the level of maxVal and minVal are not that easy to determine.  Those two values represent the thresholds that determine if the gradient is high enough or not high enough to be an edge. If the value is in between, the connectivity is taken into account. Indeed, the distribution of the gradient really depends on the images of the video, very different following the movement of the camera. That's why no efficient way of calibrating these values was determined; the images are often way too blurry because of the movement of the camera or the bad luminosity. Calibrating the values on the level of luminosity of the image was not efficient: the distribution was too different from one frame to another to correctly detect the edges - especially on the blurry or small logos (see \ref{fig:edgeDetection}).
 
 \captionsetup[subfigure]{labelformat=simple, labelsep=period}
 \begin{figure}
@@ -68,8 +70,39 @@ However, the level of maxVal and minVal are not that easy to determine.  Those t
 	\caption{Edge detection on several crops of images more or less blurred and small with the same thresholds.}\label{fig:edgeDetection}
 \end{figure}
 
+\subsection{Metrics}
+
 \paragraph{}
-Detecting the circles inside the picture reveals to be too difficult to calibrate; a first focus on where to look before using computer vision is required for proper results. To that extent, deep learning is used.
+Quantifying the results is necessary in order to be able to compare the different methods. To that extent, the same metrics are used for all the algorithms tested. All the algorithms are tested on the test video - that has not been seen by the algorithm is a training phase is used. Is taken into account:
+\begin{itemize}
+    \item The number of detected logos. A logo is considered detected if $75\%$ of its screen time appearance is detected.
+    \item The number of missed logos.
+    \item The number of false positives, which is the number of objects detected that do not contain any logo.
+    \item The time of execution to provide the \path{output.csv} file, in frame per second (fps). It is here measured on a local CPU, and provided with a standard deviation from an averaged measure every 30 images. This means that every 30 images, the time required to treat them is stored. This process is done multiple times on the same video with different starting frames, to reach a number of 1,000 samples of 30 images computation time. These values are then converted to fps. The mean and standard deviation of this distribution is provided in the result tables.
+\end{itemize}
+
+
+\subsection{Results}
+\paragraph{Accuracy}
+Detecting the circles inside the picture reveals to be too difficult to calibrate; the results are poor (see \ref{fig:edgeResults}). A first focus on where to look before using computer vision is required for proper results. To that extent, deep learning is used.
+
+\paragraph{Time of execution}
+The time of execution is here very good, enough to be used on real time. The standard deviation shows that the complexity of the image impacts the treatment, even though the lowest quantile ($94.9 - 14.6 = 85.3$) remains more than enough to be used on the fly.
+
+\begin{figure}
+    \centering
+        \begin{tabular}{c | c}
+        Metric                  & Value \\
+        \hline
+        Detected logos          & 8 \\
+        Missed logos            & 7 \\
+        False positives         & 124 \\
+        Time of execution (fps) & 94.9 (std = 14.6) \\
+        \end{tabular}
+    \caption{Metrics on algorithm using edge detection.}
+    \label{fig:edgeResults}
+\end{figure}
+
 
 \section{Deep learning}
 
@@ -163,10 +196,82 @@ The training phase is performed on a CPU for 12 hours. This is definitely not op
 \caption{\label{fig:loss}Loss evolution during the training. We can see that the training is not complete yet after less than 2,000 epochs.}
 \end{figure}
 
-\subsubsection{Results}
+\subsection{Results}
+
+\paragraph{Accuracy}
+The results from this methods are mixed. With this learning rate, we barely reach a loss below 1 (see \ref{fig:loss}), and the training could be ran for more epochs (around 10,000 would be better). That said, it performs already better than the simple edge/circle detection previously used (see \ref{fig:deepLearningResults}). It seems not to be that much bothered by the blurriness/bad luminosity of a few frames. There are however too many false positive that need to be reduced using another independent method. This is why another filter is added to the process.
+
+\paragraph{Time of execution}
+The time of execution is - as expected - worst than a simple edge analysis. It is however quite constant; it does not depend on the patterns of the figure, since the computation is rigorously the same whatever the image given. Given this, improving this could be quite easy, by for example skipping one out of two images, which would almost double the fps, reaching the real time constraint (24 fps).
+
+\begin{figure}
+    \centering
+        \begin{tabular}{c | c}
+        Metric                  & Value \\
+        \hline
+        Detected logos          & 14 \\
+        Missed logos            & 1 \\
+        False positives         & 43 \\
+        Time of execution(fps)  & 12.7 (std = 0.7) \\
+        \end{tabular}
+    \caption{Metrics on algorithm using deep learning only.}
+    \label{fig:deepLearningResults}
+\end{figure}
+
+\section{Deep learning and computer vision}
 
 \paragraph{}
-The results from this methods are mixed. With this learning rate, we barely reach a loss below 1 (see \ref{fig:loss}), and the training could be ran for more epochs (around 10,000 would be better). That said, it performs better than the simple edge/circle detection previously used (see \ref{fig:predictionResult}). It seems not to be that much bothered by the blurriness/bad luminosity of a few frames. There are however too many false positive that need to be reduced using another independent method. This is why another filter is added to the process.
+The technics used are design in order to detect false positives from true positives. The edge detection and shape recognition cannot be used since blurry images may be real logos. That's why others arguments are used.
+
+\subsection{Format}
+\paragraph{}
+This one is pretty straightforward; the logos should be a square or not too far from it depending on the angle of the camera. this allows to remove a few false positive that have a ratio height/width above $2$ or bellow $1/2$. This filter is quite fast to apply (the complexity is $\mathcal{O}(1)$).
+
+\subsection{Color distribution}
+\paragraph{}
+One thing that hasn't been used so far is the color distribution. Indeed, all the logo images should have - if the image is not too blurry - a peak in the color distribution for the background, the circle and the red quadrilateral. Unfortunately, this is not always the case, especially when the camera is moving too fast and the luminosity is not good enough.
+
+
+\captionsetup[subfigure]{labelformat=simple, labelsep=period}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{10cm}
+		\centering
+		\includegraphics[width=9cm]{images/colorDistrib1.png}
+		\caption{The distribution is neat, can be distinguished easily}
+	\end{subfigure}
+	\begin{subfigure}[t]{10cm}
+		\centering
+		\includegraphics[width=9cm]{images/colorDistrib2.png}
+		\caption{The distribution is more mixed; the percentage of red remains in the detectable area.}
+	\end{subfigure}
+	\caption{Images with detection of red and the RGB distribution of the colors.}\label{fig:colorDistrib}
+\end{figure}
+
+It is however possible to try to detect the amount of red in the picture, with what is considered red quite permissive ($red > 40$ and $red > \max(2*green, 2*blue)$). Indeed, a positive image should have at least a little bit of red, but the ratio $red\ pixels/number\ of\ pixels$ should not be more than a $25\%$ of the picture (number determined empirically by using positive and negative samples, see \ref{fig:colorDistrib}). This treatment is time consuming, the complexity being $\mathcal{O}(width*height)$.
+
+\subsection{Results}
+
+\paragraph{Accuracy}
+These treatments allows to get rid of a numerous amount of false positives (see \ref{fig:correctedDeepLearningResults}), without penalizing the true positive, the treatment remaining quite basic. The false positives left could even be improved by taking time into account; indeed, a lot of them are only detected on one frame (it's more difficult for a false positive to get through all the filters for several frames in a row), as discussed in the next section. 
+
+\paragraph{Time of execution}
+This treatment - especially the color check - makes the running time longer, since more computation is added to the already slow neural network. This depends on the number of boxed being treated, not constant, which explains the high standard deviation of the time of execution. Skipping images could be a solution, although to reach real time, an average of 4 images would have to be skipped to reach 24 fps, and there is no guaranty that the algorithm would be on time - the treatment depends on the image.
+
+\begin{figure}
+    \centering
+        \begin{tabular}{c | c}
+        Metric                  & Value \\
+        \hline
+        Detected logos          & 17 \\
+        Missed logos            & 1 \\
+        False positives         & 18 \\
+        Time of execution (fps) & 6.6 (std = 4.5) \\
+        \end{tabular}
+    \caption{Metrics on algorithm using deep learning and additional filters.}
+    \label{fig:correctedDeepLearningResults}
+\end{figure}
+
 
 \captionsetup[subfigure]{labelformat=simple, labelsep=period}
 \begin{figure}
@@ -187,43 +292,10 @@ The results from this methods are mixed. With this learning rate, we barely reac
 		\centering
 		\includegraphics[width=4cm]{images/detection4.PNG}
 	\end{subfigure}
-	\caption{Sucessful predictions on test images.}\label{fig:predictionResult}
+	\caption{Sample of successful predictions on test images.}\label{fig:finalPredictionResults}
 \end{figure}
 
-\subsection{Back to computer vision}
-
-\paragraph{}
-The technics used are design in order to detect false positives from true positives. The edge detection and shape recognition cannot be used since blurry images may be real logos. That's why others arguments are used.
-
-\subsubsection{Format}
-\paragraph{}
-This one is pretty straightforward; the logos should be a square or not too far from it depending on the angle of the camera. this allows to remove a few false positive that have a ratio height/width above $2$ or bellow $1/2$. This filter is quite fast to apply (the complexity is $\mathcal{O}(1)$)
-
-\subsubsection{Color distribution}
-\paragraph{}
-One thing that hasn't been used so far is the color distribution. Indeed, all the logo images should have - if the image is not too blurry - a pic in the color distribution in blue, white and red. However, this is not always the case, especially when the camera is moving too fast and the luminosity is not good enough.
-
-
-\captionsetup[subfigure]{labelformat=simple, labelsep=period}
-\begin{figure}
-	\centering
-	\begin{subfigure}[t]{10cm}
-		\centering
-		\includegraphics[width=9cm]{images/colorDistrib1.png}
-		\caption{The distribution is neat, can be distinguished easily}
-	\end{subfigure}
-	\begin{subfigure}[t]{10cm}
-		\centering
-		\includegraphics[width=9cm]{images/colorDistrib2.png}
-		\caption{The distribution is more mixed; the amount of red remains effective.}
-	\end{subfigure}
-	\caption{Images with detection of red and the distribution of the colors.}\label{fig:colorDistrib}
-\end{figure}
-
-However, it is possible to try to detect the amount of red in the picture, with what is considered red quite permissive ($red > 40$ and $red > \max(2*green, 2*blue)$). Indeed, a positive image should have at least a little bit of red, but must not be more than a $25\%$ of the picture (number determined by using positive and negative samples, see \ref{fig:colorDistrib}).
-
-
-\section{Next steps}
+\section{Next steps}\label{next-steps}
 
 \subsection{Tracking}
 
@@ -235,12 +307,20 @@ The study of the trajectory could also be something used. Indeed, if we detect a
 
 \subsection{Offline Treatment}
 \paragraph{}
-If the treatment is done offline (or with a reasonable delay), knowing the "future" can really be useful in the detection of false positive and false negative. Indeed, an object not detected in between two frames where the object is can be recovered afterwards. The other way around, an object detected only for one frame with no continuity could be removed.
+If the treatment is done offline (or with a reasonable delay), knowing the "future" can really be useful in the detection of false positive and false negative. Indeed, an object not detected in between two frames where the object is can be recovered afterwards. The other way around, an object detected only for one frame with no continuity could be removed: if a logo is detected for only one frame (in time), we can be suspicious about this detection.
 
 \subsection{Real time treatment}
 \paragraph{}
 The model used here does not allow the real time processing, at least on CPU. A few amelioration could improve this, such as jumping a few frames and extrapolating the position of the logos in the middle. Otherwise, lighter network could be used, such as the YOLO \cite{yolo} have better performances (reaching 45fps or 155fps for the light version); this is however always a trade off between speed and accuracy.
 
+\section{Conclusion}
+\paragraph{}
+This project measures several methods to detect the Sysnav logo in a video. There are still many possible improvements to do. The cons of the last methods used include the fact that it is easy to modify the searched object, and to play with the filters post detection with deep learning.
+
+\paragraph{}
+The classic trade off between speed and accuracy is encountered as well, and can be more exploited within operational applications; treating the video in a semi-online way (online but with a delay of a few frames) could improve the correction of false positives with the treatments suggested in the section \ref{next-steps}.
+
+\newpage
 \begin{thebibliography}{9}
 \bibitem{canny} 
 John Canny. 
