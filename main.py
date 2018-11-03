@@ -3,127 +3,87 @@
 Created on Fri Nov  2 22:51:11 2018
 
 @author: Benoit
+
+This script requires tensorflow, opencv and numpy; it has been tested on python 3.6.
+It is pretty straightforward, which is why no objects where used - although it totally could have been added.
+
 """
-
-#runfile('D:/VideoObjectDetection/detection_functions.py', wdir='D:/VideoObjectDetection')
-
-# Todo: import only what is required
-import numpy as np
-import sys
-import tensorflow as tf
+import argparse
 import cv2
+from detectionFunctions import loadDetectionModel, treatVideo
+import csv
 
-sys.path.append("models/research/")
-from object_detection.utils import label_map_util
-from object_detection.utils import visualization_utils as vis_util
+def touchOutputFile(output_file):
+    """Create and write first row of output file
+    
+    Parameters
+    ----------
+    output_file: str
+        Path to output file
 
+    Returns
+    -------
+    None
+        Might raise exception if bad path given
+    """
+    with open(output_file, 'w', newline='') as o:
+        w = csv.writer(o, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        w.writerow(['frame_id', 'x', 'y', 'w', 'h'])
 
+def writeResults(output_file, res):
+    """Create and write first row of output file
+    
+    Parameters
+    ----------
+    output_file: str
+        Path to output file
+    res: array, shape: [N, 5]
 
-def videoReader(vidCap):
-  modelName = 'sysnav_logo_inference_graph3'
-  pathToCheckpoint = modelName + '/frozen_inference_graph.pb'
-  #opener = urllib.request.URLopener()
-  #opener.retrieve(url_base + modelFile, modelFile) # url_base not defined
+    Returns
+    -------
+    None
+        File is already created
+    """
+    with open(output_file, 'a', newline='') as o:
+        w = csv.writer(o)
+        w.writerows(res) # rowS this time
 
-  print("Load trained model")
-  detection_graph = tf.Graph()
-  with detection_graph.as_default():
-    od_graph_def = tf.GraphDef()
-    with tf.gfile.GFile(pathToCheckpoint, 'rb') as fid:
-      serialized_graph = fid.read()
-      od_graph_def.ParseFromString(serialized_graph)
-      tf.import_graph_def(od_graph_def, name='')
+def main(input_file, output_file, verbose, display_frequence):
+    """Main function
+    
+    Parameters
+    ----------
+    input_file
+        Path to the input file
+    output_file: str
+        Path to output file
+    verbose: boolean
+        Displaying evolution in console or not
+    display_frequence: integer
+        Frequence of display (seconds); not used if verbose is set to False
 
-  category_index = {1: {'id': 1, 'name': 'logo'}} # We have only one category here
-  
-  print("Begining treatment of the video")
-  with detection_graph.as_default():
-    with tf.Session(graph=detection_graph) as sess:
-        
-      while True:
-        ret, image_np = vidCap.read()
-        # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
-        image_np_expanded = np.expand_dims(image_np, axis=0)
-        image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-        # Each box represents a part of the image where a particular object was detected.
-        boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-        # Each score represent how level of confidence for each of the objects.
-        # Score is shown on the result image, together with the class label.
-        scores = detection_graph.get_tensor_by_name('detection_scores:0')
-        classes = detection_graph.get_tensor_by_name('detection_classes:0')
-        # Actual detection.
-        (boxes, scores, classes) = sess.run(
-            [boxes, scores, classes],
-            feed_dict={image_tensor: image_np_expanded})
-        # Applying threshold
-        boxes, scores = keepHighScoreBoxes(boxes, scores)
-        
-        boxes = np.array([convertToCoordinates(box, image_np.shape[0:2]) for box in boxes])
-        # Going through the boxes and discriminating the false positive as much as possible
-        
-        relevantBoxesIndex = []
-        for i in range(boxes.shape[0]):
-            box = boxes[i]
-            image_box = image_np[box[0]:box[2],box[1]:box[3],:]
-            if(isValidBox(image_box)):
-                relevantBoxesIndex.append(i)
-                
-                
-                
-        boxes = boxes[relevantBoxesIndex]
-        
-        
-        vis_util.visualize_boxes_and_labels_on_image_array(
-            image_np,
-            boxes,
-            np.squeeze(classes).astype(np.int32),
-            scores,
-            category_index,
-            use_normalized_coordinates=False,
-            line_thickness=4)
-                        
-            
-        cv2.imshow('object detection', cv2.resize(image_np, (640,480)))
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
-            break
-        
-def keepHighScoreBoxes(boxes, scores, threshold = .5):
-    scores = scores[scores>threshold] # the list is already sorted
-    num_predictions = len(scores)
-    return boxes[0][0:num_predictions], scores
-
-def isValidBox(image_box):
-    return(colorValid(image_box) and shapeValid(image_box))
-
-def shapeValid(image_box, threshold = 2):
-    ratio = float(image_box.shape[0])/float(image_box.shape[1])
-    return(ratio < threshold and 1/ratio < threshold)
-
-def colorValid(image_box):
-    box_air = image_box.shape[0]*image_box.shape[1]
-    new_image = image_box.copy()
-    isRedCount = 0
-    for i in range(image_box.shape[0]):
-        for j in range(image_box.shape[1]):
-            b, g, r = image_box[i][j]
-            isRed = (r> 40 and r>max(1.5*b, 1.5*g))
-            if(isRed):
-                new_image[i][j] = [255, 0, 0]
-                isRedCount += 1
-            else:
-                new_image[i][j] = [0, 0, 0]
-    ratio = round(float(isRedCount)/float(box_air), 3)
-    return(ratio >= 0.025 and ratio <= 0.25)
+    Returns
+    -------
+    None
+        The results are stored in a csv
+    """
+    touchOutputFile(output_file)
+    res = treatVideo(input_file, verbose, display_frequence)
+    writeResults(output_file, res)
 
 
-def convertToCoordinates(box, im_dim):
-    im_height, im_width = im_dim
-    ymin = min(int(box[0] * im_height), im_height)
-    xmin = min(int(box[1] * im_width), im_width)
-    ymax = min(int(box[2] * im_height), im_height)
-    xmax = min(int(box[3] * im_width), im_width)
-    return(np.array([ymin, xmin, ymax, xmax]))
+if __name__ == "__main__":
+    # Retrieving arguments
+    parser = argparse.ArgumentParser(description = 'Detection of logos in a video')
+    parser.add_argument('-i', '--input_file', type = str, nargs = 1, help = 'path/to/input_file.avi', required = True)
+    parser.add_argument('-o', '--output_file', type = str, nargs = 1, help = 'path/to/output_file.csv', required = True)
+    parser.add_argument('-v', '--verbose', type = bool, nargs = 1, help = 'Displaying progress or not', default = True)
+    parser.add_argument('-f', '--display_frequence', type = int, nargs = 1, help = 'if verbose, how often progress is displayed', default = 15)
+    args = parser.parse_args()
+    main(args.input_file[0], args.output_file[0], args.verbose, args.display_frequence)
+    # try:
+    #     main(args.input_file, args.output_file, args.verbose, args.display_frequence)
+    # except Exception as e:
+    #     print("Error encountered:")
+    #     print(str(e))
 
-v = cv2.VideoCapture('sysnav/positive.avi')
-tmp = videoReader(v)
