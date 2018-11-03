@@ -2,18 +2,33 @@
 
 Goal: detect a logo in a video
 
-The steps and methods used are described in the pdf documentation
-
 ## Get Started
 
-Clone, run main
+Clone the repository:
+`
+git clone https://github.com/BenoitAudigier/logoDetection.git
+`
 
-### Compute a prediction
+Compute a prediction:
 
-`python main.py -i path/to/input/video.mp4 -o path/to/output/res.csv`
+`python main.py -i path/to/input/positive.avi -o path/to/output.csv`
 
 Parameters available:
 `
-'-i', '--input'     input video
-'-o', '--output'    output video
+  -i INPUT_FILE, --input_file INPUT_FILE
+                        path/to/input_file.avi
+  -o OUTPUT_FILE, --output_file OUTPUT_FILE
+                        path/to/output_file.csv
+  -v VERBOSE, --verbose VERBOSE
+                        Displaying progress or not
+  -f DISPLAY_FREQUENCE, --display_frequence DISPLAY_FREQUENCE
+                        if verbose, how often progress is displayed
 `
+
+## Documentation
+
+The steps and methods used are described in the pdf documentation in doc/.
+
+## Acknowledgements
+
+See the "References" section of the documentation.
