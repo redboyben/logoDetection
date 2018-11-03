@@ -256,7 +256,7 @@ It is however possible to try to detect the amount of red in the picture, with w
 These treatments allows to get rid of a numerous amount of false positives (see \ref{fig:correctedDeepLearningResults}), without penalizing the true positive, the treatment remaining quite basic. The false positives left could even be improved by taking time into account; indeed, a lot of them are only detected on one frame (it's more difficult for a false positive to get through all the filters for several frames in a row), as discussed in the next section. 
 
 \paragraph{Time of execution}
-This treatment - especially the color check - makes the running time longer, since more computation is added to the already slow neural network. This depends on the number of boxed being treated, not constant, which explains the high standard deviation of the time of execution. Skipping images could be a solution, although to reach real time, an average of 4 images would have to be skipped to reach 24 fps, and there is no guaranty that the algorithm would be on time - the treatment depends on the image.
+This treatment - especially the color check - makes the running time longer, since more computation is added to the already slow neural network. This depends on the number of boxed being treated, not constant, which explains the high standard deviation of the time of execution. Skipping images could be a solution, although to reach real time, an average of 3 our of 4 images would have to be skipped to reach 24 fps, and there is no guaranty that the algorithm would be on time - the treatment depends on the image.
 
 \begin{figure}
     \centering
@@ -266,7 +266,7 @@ This treatment - especially the color check - makes the running time longer, sin
         Detected logos          & 17 \\
         Missed logos            & 1 \\
         False positives         & 18 \\
-        Time of execution (fps) & 6.6 (std = 4.5) \\
+        Time of execution (fps) & 7.9 (std = 4.9) \\
         \end{tabular}
     \caption{Metrics on algorithm using deep learning and additional filters.}
     \label{fig:correctedDeepLearningResults}
@@ -320,7 +320,7 @@ This project measures several methods to detect the Sysnav logo in a video. Ther
 \paragraph{}
 The classic trade off between speed and accuracy is encountered as well, and can be more exploited within operational applications; treating the video in a semi-online way (online but with a delay of a few frames) could improve the correction of false positives with the treatments suggested in the section \ref{next-steps}.
 
-\newpage
+
 \begin{thebibliography}{9}
 \bibitem{canny} 
 John Canny. 
