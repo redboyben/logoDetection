@@ -82,7 +82,7 @@ def loadDetectionModel():
     Raises exception if file corrupted or not present 
     """
     print("Loading the frozen model")
-    pathToCheckpoint = 'sysnav_logo_inference_graph/frozen_inference_graph.pb'
+    pathToCheckpoint = 'inference_graph/frozen_inference_graph.pb'
     # Creating empty graph
     detection_graph = tf.Graph()
     with detection_graph.as_default():
