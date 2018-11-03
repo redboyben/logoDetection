@@ -10,7 +10,7 @@ It is pretty straightforward, which is why no objects where used - although it t
 """
 import argparse
 import cv2
-from detectionFunctions import loadDetectionModel, treatVideo
+from detection_functions import loadDetectionModel, treatVideo
 import csv
 
 def touchOutputFile(output_file):
@@ -80,10 +80,8 @@ if __name__ == "__main__":
     parser.add_argument('-v', '--verbose', type = bool, nargs = 1, help = 'Displaying progress or not', default = True)
     parser.add_argument('-f', '--display_frequence', type = int, nargs = 1, help = 'if verbose, how often progress is displayed', default = 15)
     args = parser.parse_args()
-    main(args.input_file[0], args.output_file[0], args.verbose, args.display_frequence)
-    # try:
-    #     main(args.input_file, args.output_file, args.verbose, args.display_frequence)
-    # except Exception as e:
-    #     print("Error encountered:")
-    #     print(str(e))
-
+    try:
+        main(args.input_file, args.output_file, args.verbose, args.display_frequence)
+    except Exception as e:
+        print("Error encountered:")
+        print(str(e))
